@@ -58,4 +58,5 @@ copias de seguridad automáticas, posible evolución a multi-institución.
 - Hecho: autorizaciones de tratamiento de datos y uso de fotos con checkbox, fecha y constancia en `app/panel/ninos/nuevo/page.tsx`; no se permite guardar sin la autorización de datos.
 - Hecho: avatar animal, PIN de 4 símbolos único por grupo, tarjeta imprimible y regeneración del PIN en `app/panel/ninos/nuevo/page.tsx`.
 - Hecho: login del niño con avatar y PIN en `app/ninos/ingresar/page.tsx`, conectado desde el botón "Soy un niño" del inicio con datos mock.
-- Siguiente: Fase 1. próxima tarea: base de datos real con Supabase o PostgreSQL.
+- Hecho: capa de datos preparada para Supabase/PostgreSQL con esquema SQL en `db/schema.sql`, servicio de acceso en `lib/data.ts` y hash de PIN en `lib/security.ts`.
+- Siguiente: Fase 1. próxima tarea: roles y permisos por perfil.

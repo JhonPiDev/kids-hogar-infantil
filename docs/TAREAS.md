@@ -21,7 +21,7 @@ Al terminar: márcala con `[x]`, agrega una línea en "Estado actual" de
       imprimible y botón de regenerar PIN.
 - [x] 8. `app/ninos/ingresar/page.tsx`: login del niño con avatar + PIN usando
       botones grandes; conectar el botón "Soy un niño" del inicio (con mock).
-- [ ] 9. Base de datos real: [Supabase / Node + PostgreSQL]; esquema de tablas,
+- [x] 9. Base de datos real: [Supabase / Node + PostgreSQL]; esquema de tablas,
       reemplazar mock por consultas reales, cifrar PIN.
 - [ ] 10. Roles y permisos (directora, docente, padre); cada padre ve solo a su hijo.
 - [ ] 11. Importación masiva desde Excel con vista previa y reporte de errores por fila.

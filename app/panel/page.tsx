@@ -1,6 +1,41 @@
-import { docentes, grupos, niños } from "@/data/mock";
+"use client";
+
+import { useEffect, useState } from "react";
+
+import { getChildren, getGroups, getTeachers } from "@/lib/data";
+import type { Docente, Grupo, Niño } from "@/types";
 
 export default function PanelPage() {
+  const [niños, setNiños] = useState<Niño[]>([]);
+  const [docentes, setDocentes] = useState<Docente[]>([]);
+  const [grupos, setGrupos] = useState<Grupo[]>([]);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadDashboard = async () => {
+      const [children, teachers, groups] = await Promise.all([
+        getChildren(),
+        getTeachers(),
+        getGroups(),
+      ]);
+
+      if (!active) {
+        return;
+      }
+
+      setNiños(children);
+      setDocentes(teachers);
+      setGrupos(groups);
+    };
+
+    loadDashboard();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const totalNiños = niños.length;
   const totalDocentes = docentes.length;
   const totalGrupos = grupos.length;

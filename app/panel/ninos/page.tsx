@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import { niños } from "@/data/mock";
-import type { EstadoNiño, GrupoNombre } from "@/types";
+import { getChildren } from "@/lib/data";
+import type { EstadoNiño, GrupoNombre, Niño } from "@/types";
 
 const grupoOptions: Array<"todos" | GrupoNombre> = [
   "todos",
@@ -22,14 +22,35 @@ const estadoOptions: Array<"todos" | EstadoNiño> = [
 ];
 
 export default function PanelNinosPage() {
+  const [children, setChildren] = useState<Niño[]>([]);
   const [search, setSearch] = useState("");
   const [selectedGroup, setSelectedGroup] = useState<"todos" | GrupoNombre>("todos");
   const [selectedStatus, setSelectedStatus] = useState<"todos" | EstadoNiño>("todos");
 
+  useEffect(() => {
+    let active = true;
+
+    const loadChildren = async () => {
+      const result = await getChildren();
+
+      if (!active) {
+        return;
+      }
+
+      setChildren(result);
+    };
+
+    loadChildren();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const filteredChildren = useMemo(() => {
     const query = search.trim().toLowerCase();
 
-    return niños.filter((nino) => {
+    return children.filter((nino) => {
       const matchesSearch =
         query.length === 0 ||
         `${nino.nombre} ${nino.apellidos}`.toLowerCase().includes(query);
@@ -42,7 +63,7 @@ export default function PanelNinosPage() {
 
       return matchesSearch && matchesGroup && matchesStatus;
     });
-  }, [search, selectedGroup, selectedStatus]);
+  }, [children, search, selectedGroup, selectedStatus]);
 
   const resetFilters = () => {
     setSearch("");

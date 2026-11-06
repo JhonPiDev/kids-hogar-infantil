@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import { niños } from "@/data/mock";
+import { getChildren, verifyChildPin } from "@/lib/data";
+import type { Niño } from "@/types";
 
 const pinSymbols = [
   "🐼",
@@ -34,13 +35,35 @@ const pinSymbols = [
 ];
 
 export default function NinoIngresarPage() {
-  const [selectedId, setSelectedId] = useState(niños[0]?.id ?? "");
+  const [children, setChildren] = useState<Niño[]>([]);
+  const [selectedId, setSelectedId] = useState("");
   const [pin, setPin] = useState<string[]>([]);
   const [message, setMessage] = useState<string | null>(null);
 
+  useEffect(() => {
+    let active = true;
+
+    const loadChildren = async () => {
+      const result = await getChildren();
+
+      if (!active) {
+        return;
+      }
+
+      setChildren(result);
+      setSelectedId((current) => current || result[0]?.id || "");
+    };
+
+    loadChildren();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const selectedChild = useMemo(
-    () => niños.find((nino) => nino.id === selectedId) ?? niños[0],
-    [selectedId],
+    () => children.find((nino) => nino.id === selectedId) ?? children[0] ?? null,
+    [children, selectedId],
   );
 
   const handleSymbolPress = (symbol: string) => {
@@ -63,7 +86,7 @@ export default function NinoIngresarPage() {
     setMessage(null);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!selectedChild) {
       setMessage("No hay un niño seleccionado.");
       return;
@@ -76,7 +99,9 @@ export default function NinoIngresarPage() {
       return;
     }
 
-    if (enteredPin === selectedChild.pin) {
+    const isValidPin = await verifyChildPin(selectedChild.id, enteredPin);
+
+    if (isValidPin) {
       setMessage(`¡Bienvenido, ${selectedChild.nombre}! Tu acceso está listo.`);
       setPin([]);
       return;
@@ -120,7 +145,7 @@ export default function NinoIngresarPage() {
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              {niños.map((nino) => {
+              {children.map((nino) => {
                 const isSelected = nino.id === selectedChild?.id;
 
                 return (
