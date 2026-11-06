@@ -56,4 +56,5 @@ copias de seguridad automáticas, posible evolución a multi-institución.
 - Hecho: formulario de registro de niño en `app/panel/ninos/nuevo/page.tsx` con validaciones y guardado en memoria.
 - Hecho: sección de acudientes en el formulario con contacto de emergencia, personas autorizadas y vinculación a uno o varios acudientes en `app/panel/ninos/nuevo/page.tsx`.
 - Hecho: autorizaciones de tratamiento de datos y uso de fotos con checkbox, fecha y constancia en `app/panel/ninos/nuevo/page.tsx`; no se permite guardar sin la autorización de datos.
-- Siguiente: Fase 1. próxima tarea: avatar y PIN de 4 símbolos.
+- Hecho: avatar animal, PIN de 4 símbolos único por grupo, tarjeta imprimible y regeneración del PIN en `app/panel/ninos/nuevo/page.tsx`.
+- Siguiente: Fase 1. próxima tarea: login del niño con avatar y PIN.

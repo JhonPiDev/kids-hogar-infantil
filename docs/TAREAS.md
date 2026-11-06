@@ -17,7 +17,7 @@ Al terminar: márcala con `[x]`, agrega una línea en "Estado actual" de
       personas autorizadas, vincular uno o varios acudientes a un niño.
 - [x] 6. Autorizaciones: tratamiento de datos (Ley 1581 de 2012) y uso de fotos,
       con checkbox, fecha y constancia. No guardar sin la de datos.
-- [ ] 7. Avatar (animal) y PIN de 4 símbolos, único dentro del grupo; tarjeta
+- [x] 7. Avatar (animal) y PIN de 4 símbolos, único dentro del grupo; tarjeta
       imprimible y botón de regenerar PIN.
 - [ ] 8. `app/ninos/ingresar/page.tsx`: login del niño con avatar + PIN usando
       botones grandes; conectar el botón "Soy un niño" del inicio (con mock).

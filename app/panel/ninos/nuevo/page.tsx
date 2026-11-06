@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { FormEvent } from "react";
 
-import { acudientes } from "@/data/mock";
+import { acudientes, niños } from "@/data/mock";
 import type { EstadoNiño, GrupoNombre, Niño } from "@/types";
 
 const grupoOptions: GrupoNombre[] = [
@@ -15,6 +15,31 @@ const grupoOptions: GrupoNombre[] = [
 ];
 
 const estadoOptions: EstadoNiño[] = ["activo", "retirado", "lista de espera"];
+const animalOptions = ["🐼", "🦊", "🐻", "🐵", "🐰", "🦄", "🐱", "🐶", "🐸", "🦁"];
+const pinSymbols = [
+  "🐼",
+  "🦊",
+  "🐵",
+  "🐻",
+  "🐰",
+  "🦄",
+  "🍉",
+  "🍓",
+  "⭐",
+  "🌞",
+  "🌈",
+  "🧩",
+  "🎨",
+  "🎵",
+  "🌙",
+  "🍋",
+  "🍇",
+  "🌻",
+  "🌟",
+  "✨",
+  "🐾",
+  "🔢",
+];
 
 type FormState = {
   nombre: string;
@@ -28,6 +53,8 @@ type FormState = {
   eps: string;
   observaciones: string;
   estado: EstadoNiño;
+  avatar: string;
+  pin: string;
 };
 
 type FormErrors = Partial<Record<keyof FormState | "acudienteInfo" | "autorizaciones", string>>;
@@ -57,6 +84,8 @@ const initialForm: FormState = {
   eps: "",
   observaciones: "",
   estado: "activo",
+  avatar: "",
+  pin: "",
 };
 
 const initialAcudienteForm: AcudienteFormState = {
@@ -92,6 +121,46 @@ const parseList = (value: string) =>
     .map((item) => item.trim())
     .filter(Boolean);
 
+const getUsedPinsForGroup = (group: GrupoNombre | "", currentChildren: Niño[] = []) => {
+  const usedPins = new Set<string>();
+
+  [...niños, ...currentChildren].forEach((nino) => {
+    if (nino.grupo === group && nino.pin) {
+      usedPins.add(nino.pin);
+    }
+  });
+
+  return usedPins;
+};
+
+const generateUniquePin = (group: GrupoNombre | "", currentChildren: Niño[] = []) => {
+  const usedPins = getUsedPinsForGroup(group, currentChildren);
+
+  for (let attempts = 0; attempts < 80; attempts += 1) {
+    const candidateSymbols: string[] = [];
+
+    while (candidateSymbols.length < 4) {
+      const symbol = pinSymbols[Math.floor(Math.random() * pinSymbols.length)];
+      if (!candidateSymbols.includes(symbol)) {
+        candidateSymbols.push(symbol);
+      }
+      if (candidateSymbols.length >= 4) {
+        break;
+      }
+    }
+
+    const candidate = candidateSymbols.join("");
+    if (!usedPins.has(candidate) && Array.from(candidate).length === 4) {
+      return candidate;
+    }
+  }
+
+  return "🐼🦊🐵🐻";
+};
+
+const generateAvatar = () =>
+  animalOptions[Math.floor(Math.random() * animalOptions.length)];
+
 export default function NuevoNinoPage() {
   const [form, setForm] = useState<FormState>(initialForm);
   const [acudienteForm, setAcudienteForm] = useState<AcudienteFormState>(initialAcudienteForm);
@@ -102,6 +171,28 @@ export default function NuevoNinoPage() {
   const [feedback, setFeedback] = useState<string | null>(null);
 
   const recentChildren = useMemo(() => savedChildren.slice(0, 3), [savedChildren]);
+
+  const handleGroupUpdate = (value: string) => {
+    const nextGroup = value as GrupoNombre | "";
+
+    setForm((current) => {
+      if (!nextGroup) {
+        return { ...current, grupo: "", avatar: "", pin: "" };
+      }
+
+      const usedPins = getUsedPinsForGroup(nextGroup, savedChildren);
+      const nextAvatar = current.avatar && current.avatar.trim() ? current.avatar : generateAvatar();
+      const nextPin =
+        current.pin && Array.from(current.pin).length === 4 && !usedPins.has(current.pin)
+          ? current.pin
+          : generateUniquePin(nextGroup, savedChildren);
+
+      return { ...current, grupo: nextGroup, avatar: nextAvatar, pin: nextPin };
+    });
+
+    setErrors((current) => ({ ...current, grupo: undefined, pin: undefined, avatar: undefined }));
+    setFeedback(null);
+  };
 
   const updateField = (field: keyof FormState, value: string) => {
     setForm((current) => ({ ...current, [field]: value }));
@@ -125,6 +216,19 @@ export default function NuevoNinoPage() {
     });
 
     setErrors((current) => ({ ...current, acudienteInfo: undefined }));
+    setFeedback(null);
+  };
+
+  const regenerateAvatar = () => {
+    setForm((current) => ({ ...current, avatar: generateAvatar() }));
+    setFeedback(null);
+  };
+
+  const regeneratePin = () => {
+    setForm((current) => ({
+      ...current,
+      pin: generateUniquePin(current.grupo || "", savedChildren),
+    }));
     setFeedback(null);
   };
 
@@ -168,6 +272,18 @@ export default function NuevoNinoPage() {
 
     if (!form.eps.trim()) {
       nextErrors.eps = "La EPS es obligatoria.";
+    }
+
+    if (form.grupo && form.pin && getUsedPinsForGroup(form.grupo, savedChildren).has(form.pin)) {
+      nextErrors.pin = "Este PIN ya está en uso en el grupo seleccionado.";
+    }
+
+    if (!form.pin || Array.from(form.pin).length !== 4) {
+      nextErrors.pin = "Debe asignarse un PIN de 4 símbolos.";
+    }
+
+    if (!form.avatar.trim()) {
+      nextErrors.avatar = "Debes asignar un avatar al niño.";
     }
 
     if (form.observaciones.trim().length > 500) {
@@ -242,8 +358,8 @@ export default function NuevoNinoPage() {
       },
       observaciones: form.observaciones.trim(),
       estado: form.estado,
-      avatar: "🧒",
-      pin: "🧒✨🌟🐾",
+      avatar: form.avatar || generateAvatar(),
+      pin: form.pin || generateUniquePin(form.grupo || "", savedChildren),
       acudienteIds: linkedCaregivers,
     };
 
@@ -348,7 +464,7 @@ export default function NuevoNinoPage() {
               <span className="mb-2 block text-sm font-bold text-[#326B50]">Grupo</span>
               <select
                 value={form.grupo}
-                onChange={(event) => updateField("grupo", event.target.value)}
+                onChange={(event) => handleGroupUpdate(event.target.value)}
                 className="w-full rounded-2xl border border-[#E7D9BD] bg-white px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-[#326B50] focus:ring-2 focus:ring-[#326B50]/10"
               >
                 <option value="">Selecciona un grupo</option>
@@ -667,6 +783,89 @@ export default function NuevoNinoPage() {
             {errors.autorizaciones && (
               <p className="text-sm font-medium text-red-600">{errors.autorizaciones}</p>
             )}
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-[#EDE0C6] bg-[#F9F6F0] p-4 md:p-5">
+          <div className="mb-4">
+            <h3 className="text-xl font-black text-[#326B50]">Avatar y acceso</h3>
+          </div>
+
+          <div className="grid gap-5 lg:grid-cols-[1fr_1.2fr]">
+            <div className="rounded-[28px] border border-[#E7D9BD] bg-white p-5 text-center shadow-sm">
+              <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-orange-100 text-6xl shadow-inner">
+                {form.avatar || "🐼"}
+              </div>
+
+              <p className="mt-4 text-sm font-bold uppercase tracking-[0.2em] text-[#326B50]/70">
+                Avatar asignado
+              </p>
+
+              <div className="mt-4 flex items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={regenerateAvatar}
+                  className="rounded-full border border-[#326B50] bg-white px-4 py-2 text-xs font-bold text-[#326B50] transition hover:bg-[#EEF8F3]"
+                >
+                  Cambiar avatar
+                </button>
+
+                <button
+                  type="button"
+                  onClick={regeneratePin}
+                  className="rounded-full bg-[#326B50] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#294f3f]"
+                >
+                  Regenerar PIN
+                </button>
+              </div>
+
+              {errors.avatar && <p className="mt-3 text-xs font-medium text-red-600">{errors.avatar}</p>}
+            </div>
+
+            <div className="rounded-[28px] border border-[#E7D9BD] bg-[#FFFDF9] p-5 shadow-sm">
+              <p className="text-sm font-bold uppercase tracking-[0.18em] text-[#326B50]">
+                Tarjeta de acceso
+              </p>
+
+              <div className="mt-4 flex items-center justify-between rounded-2xl bg-white p-4 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-100 text-4xl">
+                    {form.avatar || "🐼"}
+                  </div>
+                  <div>
+                    <p className="text-lg font-black text-[#326B50]">
+                      {form.nombre.trim() || "Nombre del niño"}
+                    </p>
+                    <p className="text-xs font-bold uppercase tracking-[0.15em] text-gray-500">
+                      {form.grupo || "Grupo"}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="rounded-full border border-[#326B50] bg-[#EEF8F3] px-3 py-2 text-[11px] font-bold text-[#326B50] transition hover:bg-[#E0F1EA]"
+                >
+                  Imprimir
+                </button>
+              </div>
+
+              <div className="mt-5 rounded-2xl bg-[#326B50] p-4 text-center text-white shadow-sm">
+                <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-green-100">
+                  PIN de acceso
+                </p>
+                <div className="mt-3 flex items-center justify-center gap-2 text-3xl">
+                  {Array.from(form.pin || "🐼🦊🐵🐻").map((symbol, index) => (
+                    <span key={`${symbol}-${index}`} className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/10">
+                      {symbol}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {errors.pin && <p className="mt-3 text-xs font-medium text-red-600">{errors.pin}</p>}
+            </div>
           </div>
         </section>
 
