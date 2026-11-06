@@ -11,7 +11,7 @@ Al terminar: márcala con `[x]`, agrega una línea en "Estado actual" de
       (Niños, Docentes, Grupos), mismo estilo visual del inicio, adaptable a celular.
 - [x] 3. `app/panel/ninos/page.tsx`: lista de niños (datos mock), búsqueda por
       nombre, filtros por grupo y estado, estado vacío.
-- [ ] 4. `app/panel/ninos/nuevo/page.tsx`: formulario de niño (datos básicos,
+- [x] 4. `app/panel/ninos/nuevo/page.tsx`: formulario de niño (datos básicos,
       grupo, salud, observaciones, estado) con validaciones; guarda en memoria.
 - [ ] 5. Sección de acudientes en el formulario: datos, contacto de emergencia,
       personas autorizadas, vincular uno o varios acudientes a un niño.

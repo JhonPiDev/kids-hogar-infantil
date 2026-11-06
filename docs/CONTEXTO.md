@@ -53,4 +53,5 @@ copias de seguridad automáticas, posible evolución a multi-institución.
   docentes y grupos en `types/` y `data/mock.ts`.
 - Hecho: layout del panel docente con barra lateral y vista general en `app/panel/`.
 - Hecho: lista de niños con búsqueda, filtros por grupo y estado y estado vacío en `app/panel/ninos/page.tsx`.
-- Siguiente: Fase 1.
+- Hecho: formulario de registro de niño en `app/panel/ninos/nuevo/page.tsx` con validaciones y guardado en memoria.
+- Siguiente: Fase 1. próxima tarea: sección de acudientes en el formulario.
