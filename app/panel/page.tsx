@@ -1,14 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { getChildren, getGroups, getTeachers } from "@/lib/data";
+import { getVisibleChildren } from "@/lib/permissions";
+import { useRole } from "@/lib/role-context";
 import type { Docente, Grupo, Niño } from "@/types";
 
 export default function PanelPage() {
   const [niños, setNiños] = useState<Niño[]>([]);
   const [docentes, setDocentes] = useState<Docente[]>([]);
   const [grupos, setGrupos] = useState<Grupo[]>([]);
+  const { activeRole, currentRole } = useRole();
 
   useEffect(() => {
     let active = true;
@@ -36,9 +39,29 @@ export default function PanelPage() {
     };
   }, []);
 
-  const totalNiños = niños.length;
-  const totalDocentes = docentes.length;
-  const totalGrupos = grupos.length;
+  const visibleChildren = useMemo(
+    () =>
+      getVisibleChildren(
+        niños,
+        activeRole,
+        currentRole.id,
+        currentRole.groups,
+        currentRole.parentIds ?? [],
+      ),
+    [niños, activeRole, currentRole],
+  );
+
+  const visibleGroups = useMemo(() => {
+    if (activeRole === "directora") {
+      return grupos;
+    }
+
+    return grupos.filter((grupo) => currentRole.groups.includes(grupo.nombre));
+  }, [activeRole, currentRole.groups, grupos]);
+
+  const totalNiños = visibleChildren.length;
+  const totalDocentes = activeRole === "directora" ? docentes.length : activeRole === "docente" ? 1 : 0;
+  const totalGrupos = visibleGroups.length;
 
   return (
     <div className="space-y-6">
@@ -48,12 +71,14 @@ export default function PanelPage() {
             Panel principal
           </p>
           <h2 className="mt-2 text-3xl font-black text-[#326B50]">
-            Bienvenida, directora
+            Bienvenida, {currentRole.userName.split(" ")[0]}
           </h2>
         </div>
-        <button className="inline-flex items-center justify-center rounded-full bg-[#326B50] px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#294f3f]">
-          + Nuevo niño
-        </button>
+        {activeRole === "directora" && (
+          <button className="inline-flex items-center justify-center rounded-full bg-[#326B50] px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#294f3f]">
+            + Nuevo niño
+          </button>
+        )}
       </header>
 
       <section className="grid gap-4 md:grid-cols-3">
@@ -62,7 +87,9 @@ export default function PanelPage() {
             Niños
           </p>
           <p className="mt-4 text-4xl font-black text-[#326B50]">{totalNiños}</p>
-          <p className="mt-2 text-sm text-gray-600">Total activos en el programa</p>
+          <p className="mt-2 text-sm text-gray-600">
+            {activeRole === "padre" ? "Niños vinculados" : "Total activos en el programa"}
+          </p>
         </div>
 
         <div className="rounded-3xl bg-green-100 p-5 shadow-sm">
@@ -70,7 +97,9 @@ export default function PanelPage() {
             Docentes
           </p>
           <p className="mt-4 text-4xl font-black text-[#326B50]">{totalDocentes}</p>
-          <p className="mt-2 text-sm text-gray-600">Personal registrado</p>
+          <p className="mt-2 text-sm text-gray-600">
+            {activeRole === "padre" ? "Personal visible" : "Personal registrado"}
+          </p>
         </div>
 
         <div className="rounded-3xl bg-yellow-100 p-5 shadow-sm">
@@ -87,13 +116,13 @@ export default function PanelPage() {
           <div className="mb-4 flex items-center justify-between">
             <h3 className="text-xl font-black text-[#326B50]">Grupos actuales</h3>
             <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-bold text-green-800">
-              Ordenado
+              {activeRole === "directora" ? "Ordenado" : "Vista restringida"}
             </span>
           </div>
 
           <div className="space-y-3">
-            {grupos.map((grupo) => {
-              const count = niños.filter((nino) => nino.grupo === grupo.nombre).length;
+            {visibleGroups.map((grupo) => {
+              const count = visibleChildren.filter((nino) => nino.grupo === grupo.nombre).length;
 
               return (
                 <div
@@ -126,19 +155,23 @@ export default function PanelPage() {
               <p className="text-sm font-bold uppercase tracking-[0.18em] text-gray-500">
                 Estado
               </p>
-              <p className="mt-2 text-lg font-black text-[#326B50]">2 en lista de espera</p>
+              <p className="mt-2 text-lg font-black text-[#326B50]">
+                {visibleChildren.filter((nino) => nino.estado === "lista de espera").length} en lista de espera
+              </p>
             </div>
             <div className="rounded-2xl bg-white p-4 shadow-sm">
               <p className="text-sm font-bold uppercase tracking-[0.18em] text-gray-500">
-                Cumpleaños
+                Perfil
               </p>
-              <p className="mt-2 text-lg font-black text-[#326B50]">3 este mes</p>
+              <p className="mt-2 text-lg font-black text-[#326B50]">{currentRole.label}</p>
             </div>
             <div className="rounded-2xl bg-white p-4 shadow-sm">
               <p className="text-sm font-bold uppercase tracking-[0.18em] text-gray-500">
                 Recordatorios
               </p>
-              <p className="mt-2 text-lg font-black text-[#326B50]">6 pendientes</p>
+              <p className="mt-2 text-lg font-black text-[#326B50]">
+                {visibleChildren.length > 0 ? `${visibleChildren.length} referencias activas` : "Sin registros"}
+              </p>
             </div>
           </div>
         </div>

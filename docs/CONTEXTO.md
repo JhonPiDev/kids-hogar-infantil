@@ -59,4 +59,6 @@ copias de seguridad automáticas, posible evolución a multi-institución.
 - Hecho: avatar animal, PIN de 4 símbolos único por grupo, tarjeta imprimible y regeneración del PIN en `app/panel/ninos/nuevo/page.tsx`.
 - Hecho: login del niño con avatar y PIN en `app/ninos/ingresar/page.tsx`, conectado desde el botón "Soy un niño" del inicio con datos mock.
 - Hecho: capa de datos preparada para Supabase/PostgreSQL con esquema SQL en `db/schema.sql`, servicio de acceso en `lib/data.ts` y hash de PIN en `lib/security.ts`.
-- Siguiente: Fase 1. próxima tarea: roles y permisos por perfil.
+- Hecho: control de acceso por perfiles en `app/panel/` y `app/panel/ninos/page.tsx`; la directora ve todo, la docente ve su grupo y cada padre solo ve a sus hijos.
+- Hecho: pantalla de importación masiva desde Excel en `app/panel/importar/page.tsx` con plantilla CSV, vista previa y reporte de errores por fila.
+- Siguiente: cierre del proyecto Fase 1, preparación para migración a backend real y roles de acceso operativos.

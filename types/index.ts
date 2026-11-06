@@ -1,6 +1,13 @@
 export type GrupoNombre = "párvulos" | "caminadores" | "prejardín" | "jardín";
 export type EstadoNiño = "activo" | "retirado" | "lista de espera";
 export type RolDocente = "directora" | "docente";
+export type RolUsuario = "directora" | "docente" | "padre";
+
+export interface UsuarioSesion {
+  rol: RolUsuario;
+  id: string;
+  nombre: string;
+}
 
 export interface Grupo {
   id: string;

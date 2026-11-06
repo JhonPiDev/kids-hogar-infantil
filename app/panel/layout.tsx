@@ -3,15 +3,31 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { roleConfig } from "@/lib/permissions";
+import { RoleProvider, useRole } from "@/lib/role-context";
+import type { RolUsuario } from "@/types";
+
 const menuItems = [
   { href: "/panel", label: "Inicio", icon: "🏠" },
   { href: "/panel/ninos", label: "Niños", icon: "🧒" },
   { href: "/panel/docentes", label: "Docentes", icon: "👩‍🏫" },
   { href: "/panel/grupos", label: "Grupos", icon: "🧩" },
+  { href: "/panel/importar", label: "Importar Excel", icon: "📥" },
 ];
 
+const roleOptions: RolUsuario[] = ["directora", "docente", "padre"];
+
 export default function PanelLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <RoleProvider>
+      <PanelLayoutContent>{children}</PanelLayoutContent>
+    </RoleProvider>
+  );
+}
+
+function PanelLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { activeRole, setActiveRole, currentRole } = useRole();
 
   return (
     <div className="min-h-screen bg-[#FFF9EF] text-gray-800">
@@ -30,11 +46,22 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
           </div>
 
           <div className="mb-6 rounded-2xl bg-[#326B50] p-4 text-white shadow-sm">
-            <p className="text-xs uppercase tracking-[0.18em] text-green-100">
-              Directora
-            </p>
-            <p className="mt-2 text-lg font-extrabold">Ana Pérez</p>
-            <p className="mt-1 text-sm text-green-100">Seguimiento educativo</p>
+            <label className="block text-xs uppercase tracking-[0.18em] text-green-100">
+              Perfil activo
+            </label>
+            <select
+              value={activeRole}
+              onChange={(event) => setActiveRole(event.target.value as RolUsuario)}
+              className="mt-2 w-full rounded-xl border border-white/20 bg-[#2b5649] px-3 py-2 text-sm font-bold text-white outline-none ring-0"
+            >
+              {roleOptions.map((role) => (
+                <option key={role} value={role} className="bg-[#326B50] text-white">
+                  {roleConfig[role].label}
+                </option>
+              ))}
+            </select>
+            <p className="mt-2 text-lg font-extrabold">{currentRole.userName}</p>
+            <p className="mt-1 text-sm text-green-100">{currentRole.description}</p>
           </div>
 
           <nav className="space-y-2">

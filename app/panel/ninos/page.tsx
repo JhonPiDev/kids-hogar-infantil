@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import { getChildren } from "@/lib/data";
+import { getVisibleChildren } from "@/lib/permissions";
+import { useRole } from "@/lib/role-context";
 import type { EstadoNiño, GrupoNombre, Niño } from "@/types";
 
 const grupoOptions: Array<"todos" | GrupoNombre> = [
@@ -26,6 +28,7 @@ export default function PanelNinosPage() {
   const [search, setSearch] = useState("");
   const [selectedGroup, setSelectedGroup] = useState<"todos" | GrupoNombre>("todos");
   const [selectedStatus, setSelectedStatus] = useState<"todos" | EstadoNiño>("todos");
+  const { activeRole, currentRole } = useRole();
 
   useEffect(() => {
     let active = true;
@@ -47,10 +50,22 @@ export default function PanelNinosPage() {
     };
   }, []);
 
+  const roleChildren = useMemo(
+    () =>
+      getVisibleChildren(
+        children,
+        activeRole,
+        currentRole.id,
+        currentRole.groups,
+        currentRole.parentIds ?? [],
+      ),
+    [children, activeRole, currentRole],
+  );
+
   const filteredChildren = useMemo(() => {
     const query = search.trim().toLowerCase();
 
-    return children.filter((nino) => {
+    return roleChildren.filter((nino) => {
       const matchesSearch =
         query.length === 0 ||
         `${nino.nombre} ${nino.apellidos}`.toLowerCase().includes(query);
@@ -63,7 +78,7 @@ export default function PanelNinosPage() {
 
       return matchesSearch && matchesGroup && matchesStatus;
     });
-  }, [children, search, selectedGroup, selectedStatus]);
+  }, [roleChildren, search, selectedGroup, selectedStatus]);
 
   const resetFilters = () => {
     setSearch("");
@@ -84,15 +99,19 @@ export default function PanelNinosPage() {
           <p className="text-sm font-bold uppercase tracking-[0.2em] text-orange-500">
             Niños
           </p>
-          <h2 className="mt-2 text-3xl font-black text-[#326B50]">Lista de estudiantes</h2>
+          <h2 className="mt-2 text-3xl font-black text-[#326B50]">
+            {activeRole === "padre" ? "Mis hijos" : "Lista de estudiantes"}
+          </h2>
         </div>
 
-        <Link
-          href="/panel/ninos/nuevo"
-          className="inline-flex items-center justify-center rounded-full bg-[#326B50] px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#294f3f]"
-        >
-          + Registrar niño
-        </Link>
+        {activeRole === "directora" && (
+          <Link
+            href="/panel/ninos/nuevo"
+            className="inline-flex items-center justify-center rounded-full bg-[#326B50] px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#294f3f]"
+          >
+            + Registrar niño
+          </Link>
+        )}
       </header>
 
       <section className="rounded-3xl border border-[#EDE0C6] bg-[#F9F6F0] p-4 md:p-5">
@@ -147,7 +166,9 @@ export default function PanelNinosPage() {
           </div>
           <h3 className="mt-4 text-2xl font-black text-[#326B50]">No hay resultados</h3>
           <p className="mt-2 text-gray-600">
-            Intenta otra búsqueda o limpia los filtros para ver más estudiantes.
+            {activeRole === "padre"
+              ? "No hay niños asociados a tu perfil en este momento."
+              : "Intenta otra búsqueda o limpia los filtros para ver más estudiantes."}
           </p>
           <button
             type="button"
