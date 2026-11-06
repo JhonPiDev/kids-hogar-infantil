@@ -54,4 +54,5 @@ copias de seguridad automáticas, posible evolución a multi-institución.
 - Hecho: layout del panel docente con barra lateral y vista general en `app/panel/`.
 - Hecho: lista de niños con búsqueda, filtros por grupo y estado y estado vacío en `app/panel/ninos/page.tsx`.
 - Hecho: formulario de registro de niño en `app/panel/ninos/nuevo/page.tsx` con validaciones y guardado en memoria.
-- Siguiente: Fase 1. próxima tarea: sección de acudientes en el formulario.
+- Hecho: sección de acudientes en el formulario con contacto de emergencia, personas autorizadas y vinculación a uno o varios acudientes en `app/panel/ninos/nuevo/page.tsx`.
+- Siguiente: Fase 1. próxima tarea: autorizaciones de tratamiento de datos y uso de fotos.

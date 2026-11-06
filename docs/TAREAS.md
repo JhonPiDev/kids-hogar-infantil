@@ -13,7 +13,7 @@ Al terminar: márcala con `[x]`, agrega una línea en "Estado actual" de
       nombre, filtros por grupo y estado, estado vacío.
 - [x] 4. `app/panel/ninos/nuevo/page.tsx`: formulario de niño (datos básicos,
       grupo, salud, observaciones, estado) con validaciones; guarda en memoria.
-- [ ] 5. Sección de acudientes en el formulario: datos, contacto de emergencia,
+- [x] 5. Sección de acudientes en el formulario: datos, contacto de emergencia,
       personas autorizadas, vincular uno o varios acudientes a un niño.
 - [ ] 6. Autorizaciones: tratamiento de datos (Ley 1581 de 2012) y uso de fotos,
       con checkbox, fecha y constancia. No guardar sin la de datos.

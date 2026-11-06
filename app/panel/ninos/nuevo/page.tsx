@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { FormEvent } from "react";
 
+import { acudientes } from "@/data/mock";
 import type { EstadoNiño, GrupoNombre, Niño } from "@/types";
 
 const grupoOptions: GrupoNombre[] = [
@@ -29,7 +30,20 @@ type FormState = {
   estado: EstadoNiño;
 };
 
-type FormErrors = Partial<Record<keyof FormState, string>>;
+type FormErrors = Partial<Record<keyof FormState | "acudienteInfo", string>>;
+
+type AcudienteFormState = {
+  nombre: string;
+  apellidos: string;
+  documento: string;
+  parentesco: string;
+  telefono: string;
+  correo: string;
+  contactoNombre: string;
+  contactoTelefono: string;
+  contactoParentesco: string;
+  autorizadas: string;
+};
 
 const initialForm: FormState = {
   nombre: "",
@@ -45,6 +59,19 @@ const initialForm: FormState = {
   estado: "activo",
 };
 
+const initialAcudienteForm: AcudienteFormState = {
+  nombre: "",
+  apellidos: "",
+  documento: "",
+  parentesco: "",
+  telefono: "",
+  correo: "",
+  contactoNombre: "",
+  contactoTelefono: "",
+  contactoParentesco: "",
+  autorizadas: "",
+};
+
 const parseList = (value: string) =>
   value
     .split(",")
@@ -53,6 +80,8 @@ const parseList = (value: string) =>
 
 export default function NuevoNinoPage() {
   const [form, setForm] = useState<FormState>(initialForm);
+  const [acudienteForm, setAcudienteForm] = useState<AcudienteFormState>(initialAcudienteForm);
+  const [selectedCaregiverIds, setSelectedCaregiverIds] = useState<string[]>([]);
   const [errors, setErrors] = useState<FormErrors>({});
   const [savedChildren, setSavedChildren] = useState<Niño[]>([]);
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -62,6 +91,25 @@ export default function NuevoNinoPage() {
   const updateField = (field: keyof FormState, value: string) => {
     setForm((current) => ({ ...current, [field]: value }));
     setErrors((current) => ({ ...current, [field]: undefined }));
+    setFeedback(null);
+  };
+
+  const updateAcudienteField = (field: keyof AcudienteFormState, value: string) => {
+    setAcudienteForm((current) => ({ ...current, [field]: value }));
+    setErrors((current) => ({ ...current, acudienteInfo: undefined }));
+    setFeedback(null);
+  };
+
+  const toggleCaregiver = (caregiverId: string) => {
+    setSelectedCaregiverIds((current) => {
+      if (current.includes(caregiverId)) {
+        return current.filter((id) => id !== caregiverId);
+      }
+
+      return [...current, caregiverId];
+    });
+
+    setErrors((current) => ({ ...current, acudienteInfo: undefined }));
     setFeedback(null);
   };
 
@@ -105,6 +153,31 @@ export default function NuevoNinoPage() {
       nextErrors.observaciones = "Las observaciones deben tener máximo 500 caracteres.";
     }
 
+    const hasSelectedCaregivers = selectedCaregiverIds.length > 0;
+    const hasAcudienteDraft = Object.values(acudienteForm).some((value) => value.trim().length > 0);
+
+    if (!hasSelectedCaregivers && !hasAcudienteDraft) {
+      nextErrors.acudienteInfo = "Debes vincular al menos un acudiente o completar sus datos.";
+    }
+
+    if (hasAcudienteDraft) {
+      const requiredFields: Array<keyof AcudienteFormState> = [
+        "nombre",
+        "apellidos",
+        "documento",
+        "parentesco",
+        "telefono",
+        "contactoNombre",
+        "contactoTelefono",
+      ];
+
+      const missingField = requiredFields.find((field) => !acudienteForm[field].trim());
+
+      if (missingField) {
+        nextErrors.acudienteInfo = `Completa el campo de ${missingField.replace(/([A-Z])/g, " $1").toLowerCase()} del acudiente.`;
+      }
+    }
+
     return nextErrors;
   };
 
@@ -118,6 +191,8 @@ export default function NuevoNinoPage() {
       setFeedback("Revisa los campos marcados antes de guardar.");
       return;
     }
+
+    const linkedCaregivers = selectedCaregiverIds.length > 0 ? selectedCaregiverIds : [`acudiente-${Date.now()}`];
 
     const newChild: Niño = {
       id: `registro-${Date.now()}`,
@@ -136,12 +211,14 @@ export default function NuevoNinoPage() {
       estado: form.estado,
       avatar: "🧒",
       pin: "🧒✨🌟🐾",
-      acudienteIds: [],
+      acudienteIds: linkedCaregivers,
     };
 
     setSavedChildren((current) => [newChild, ...current]);
     setFeedback(`Niño ${newChild.nombre} ${newChild.apellidos} guardado en memoria.`);
     setForm(initialForm);
+    setAcudienteForm(initialAcudienteForm);
+    setSelectedCaregiverIds([]);
     setErrors({});
   };
 
@@ -334,11 +411,175 @@ export default function NuevoNinoPage() {
           </div>
         </section>
 
+        <section className="rounded-3xl border border-[#EDE0C6] bg-[#F9F6F0] p-4 md:p-5">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h3 className="text-xl font-black text-[#326B50]">Acudientes</h3>
+            <span className="rounded-full bg-[#326B50] px-3 py-1 text-xs font-bold text-white">
+              {selectedCaregiverIds.length} vinculados
+            </span>
+          </div>
+
+          <div className="space-y-4">
+            <div className="rounded-2xl border border-[#E7D9BD] bg-white p-4">
+              <p className="mb-3 text-sm font-bold uppercase tracking-[0.18em] text-[#326B50]">
+                Vincular acudientes existentes
+              </p>
+
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                {acudientes.map((acudiente) => {
+                  const isSelected = selectedCaregiverIds.includes(acudiente.id);
+
+                  return (
+                    <button
+                      key={acudiente.id}
+                      type="button"
+                      onClick={() => toggleCaregiver(acudiente.id)}
+                      className={[
+                        "rounded-2xl border p-3 text-left transition",
+                        isSelected
+                          ? "border-[#326B50] bg-[#EEF8F3] shadow-sm"
+                          : "border-[#E7D9BD] bg-[#FFFDF9] hover:border-[#326B50]/50",
+                      ].join(" ")}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-base font-black text-[#326B50]">
+                          {acudiente.nombre} {acudiente.apellidos}
+                        </span>
+                        <span className="text-xl">{isSelected ? "✅" : "○"}</span>
+                      </div>
+                      <p className="mt-2 text-xs font-medium text-gray-600">{acudiente.parentesco}</p>
+                      <p className="mt-1 text-xs text-gray-500">{acudiente.telefono}</p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="block">
+                <span className="mb-2 block text-sm font-bold text-[#326B50]">Nombre del acudiente</span>
+                <input
+                  type="text"
+                  value={acudienteForm.nombre}
+                  onChange={(event) => updateAcudienteField("nombre", event.target.value)}
+                  placeholder="Ej. María"
+                  className="w-full rounded-2xl border border-[#E7D9BD] bg-white px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-[#326B50] focus:ring-2 focus:ring-[#326B50]/10"
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-2 block text-sm font-bold text-[#326B50]">Apellidos</span>
+                <input
+                  type="text"
+                  value={acudienteForm.apellidos}
+                  onChange={(event) => updateAcudienteField("apellidos", event.target.value)}
+                  placeholder="Ej. López"
+                  className="w-full rounded-2xl border border-[#E7D9BD] bg-white px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-[#326B50] focus:ring-2 focus:ring-[#326B50]/10"
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-2 block text-sm font-bold text-[#326B50]">Documento</span>
+                <input
+                  type="text"
+                  value={acudienteForm.documento}
+                  onChange={(event) => updateAcudienteField("documento", event.target.value)}
+                  placeholder="Ej. 1234567890"
+                  className="w-full rounded-2xl border border-[#E7D9BD] bg-white px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-[#326B50] focus:ring-2 focus:ring-[#326B50]/10"
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-2 block text-sm font-bold text-[#326B50]">Parentesco</span>
+                <input
+                  type="text"
+                  value={acudienteForm.parentesco}
+                  onChange={(event) => updateAcudienteField("parentesco", event.target.value)}
+                  placeholder="Ej. madre"
+                  className="w-full rounded-2xl border border-[#E7D9BD] bg-white px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-[#326B50] focus:ring-2 focus:ring-[#326B50]/10"
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-2 block text-sm font-bold text-[#326B50]">Teléfono</span>
+                <input
+                  type="tel"
+                  value={acudienteForm.telefono}
+                  onChange={(event) => updateAcudienteField("telefono", event.target.value)}
+                  placeholder="Ej. 3201234567"
+                  className="w-full rounded-2xl border border-[#E7D9BD] bg-white px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-[#326B50] focus:ring-2 focus:ring-[#326B50]/10"
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-2 block text-sm font-bold text-[#326B50]">Correo</span>
+                <input
+                  type="email"
+                  value={acudienteForm.correo}
+                  onChange={(event) => updateAcudienteField("correo", event.target.value)}
+                  placeholder="Ej. maria@email.com"
+                  className="w-full rounded-2xl border border-[#E7D9BD] bg-white px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-[#326B50] focus:ring-2 focus:ring-[#326B50]/10"
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-2 block text-sm font-bold text-[#326B50]">Contacto de emergencia</span>
+                <input
+                  type="text"
+                  value={acudienteForm.contactoNombre}
+                  onChange={(event) => updateAcudienteField("contactoNombre", event.target.value)}
+                  placeholder="Ej. Carlos López"
+                  className="w-full rounded-2xl border border-[#E7D9BD] bg-white px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-[#326B50] focus:ring-2 focus:ring-[#326B50]/10"
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-2 block text-sm font-bold text-[#326B50]">Teléfono de emergencia</span>
+                <input
+                  type="tel"
+                  value={acudienteForm.contactoTelefono}
+                  onChange={(event) => updateAcudienteField("contactoTelefono", event.target.value)}
+                  placeholder="Ej. 3129876543"
+                  className="w-full rounded-2xl border border-[#E7D9BD] bg-white px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-[#326B50] focus:ring-2 focus:ring-[#326B50]/10"
+                />
+              </label>
+
+              <label className="block md:col-span-2">
+                <span className="mb-2 block text-sm font-bold text-[#326B50]">Parentesco del contacto</span>
+                <input
+                  type="text"
+                  value={acudienteForm.contactoParentesco}
+                  onChange={(event) => updateAcudienteField("contactoParentesco", event.target.value)}
+                  placeholder="Ej. abuelo"
+                  className="w-full rounded-2xl border border-[#E7D9BD] bg-white px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-[#326B50] focus:ring-2 focus:ring-[#326B50]/10"
+                />
+              </label>
+
+              <label className="block md:col-span-2">
+                <span className="mb-2 block text-sm font-bold text-[#326B50]">Personas autorizadas</span>
+                <textarea
+                  value={acudienteForm.autorizadas}
+                  onChange={(event) => updateAcudienteField("autorizadas", event.target.value)}
+                  rows={3}
+                  placeholder="Ej. Ana López, Felipe Ruiz"
+                  className="w-full rounded-2xl border border-[#E7D9BD] bg-white px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-[#326B50] focus:ring-2 focus:ring-[#326B50]/10"
+                />
+              </label>
+            </div>
+
+            {errors.acudienteInfo && (
+              <p className="text-sm font-medium text-red-600">{errors.acudienteInfo}</p>
+            )}
+          </div>
+        </section>
+
         <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
           <button
             type="button"
             onClick={() => {
               setForm(initialForm);
+              setAcudienteForm(initialAcudienteForm);
+              setSelectedCaregiverIds([]);
               setErrors({});
               setFeedback(null);
             }}
