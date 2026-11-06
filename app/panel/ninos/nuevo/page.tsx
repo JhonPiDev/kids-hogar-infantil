@@ -30,7 +30,7 @@ type FormState = {
   estado: EstadoNiño;
 };
 
-type FormErrors = Partial<Record<keyof FormState | "acudienteInfo", string>>;
+type FormErrors = Partial<Record<keyof FormState | "acudienteInfo" | "autorizaciones", string>>;
 
 type AcudienteFormState = {
   nombre: string;
@@ -72,6 +72,20 @@ const initialAcudienteForm: AcudienteFormState = {
   autorizadas: "",
 };
 
+type AutorizacionesState = {
+  tratamientoDatos: boolean;
+  usoFotos: boolean;
+  fecha: string;
+  constancia: string;
+};
+
+const initialAutorizaciones: AutorizacionesState = {
+  tratamientoDatos: false,
+  usoFotos: false,
+  fecha: "",
+  constancia: "",
+};
+
 const parseList = (value: string) =>
   value
     .split(",")
@@ -81,6 +95,7 @@ const parseList = (value: string) =>
 export default function NuevoNinoPage() {
   const [form, setForm] = useState<FormState>(initialForm);
   const [acudienteForm, setAcudienteForm] = useState<AcudienteFormState>(initialAcudienteForm);
+  const [autorizaciones, setAutorizaciones] = useState<AutorizacionesState>(initialAutorizaciones);
   const [selectedCaregiverIds, setSelectedCaregiverIds] = useState<string[]>([]);
   const [errors, setErrors] = useState<FormErrors>({});
   const [savedChildren, setSavedChildren] = useState<Niño[]>([]);
@@ -110,6 +125,12 @@ export default function NuevoNinoPage() {
     });
 
     setErrors((current) => ({ ...current, acudienteInfo: undefined }));
+    setFeedback(null);
+  };
+
+  const updateAutorizacion = (field: keyof AutorizacionesState, value: boolean | string) => {
+    setAutorizaciones((current) => ({ ...current, [field]: value }));
+    setErrors((current) => ({ ...current, autorizaciones: undefined }));
     setFeedback(null);
   };
 
@@ -178,6 +199,18 @@ export default function NuevoNinoPage() {
       }
     }
 
+    if (!autorizaciones.tratamientoDatos) {
+      nextErrors.autorizaciones = "Es obligatorio autorizar el tratamiento de datos para guardar la ficha.";
+    }
+
+    if (!autorizaciones.fecha.trim()) {
+      nextErrors.autorizaciones = "La fecha de autorización es obligatoria.";
+    }
+
+    if (!autorizaciones.constancia.trim()) {
+      nextErrors.autorizaciones = "La constancia del acudiente es obligatoria.";
+    }
+
     return nextErrors;
   };
 
@@ -218,6 +251,7 @@ export default function NuevoNinoPage() {
     setFeedback(`Niño ${newChild.nombre} ${newChild.apellidos} guardado en memoria.`);
     setForm(initialForm);
     setAcudienteForm(initialAcudienteForm);
+    setAutorizaciones(initialAutorizaciones);
     setSelectedCaregiverIds([]);
     setErrors({});
   };
@@ -573,7 +607,84 @@ export default function NuevoNinoPage() {
           </div>
         </section>
 
+        <section className="rounded-3xl border border-[#EDE0C6] bg-[#F9F6F0] p-4 md:p-5">
+          <div className="mb-4">
+            <h3 className="text-xl font-black text-[#326B50]">Autorizaciones</h3>
+          </div>
+
+          <div className="space-y-4">
+            <label className="flex items-start gap-3 rounded-2xl border border-[#E7D9BD] bg-white p-4">
+              <input
+                type="checkbox"
+                checked={autorizaciones.tratamientoDatos}
+                onChange={(event) =>
+                  updateAutorizacion("tratamientoDatos", event.target.checked)
+                }
+                className="mt-1 h-5 w-5 accent-[#326B50]"
+              />
+              <span className="text-sm text-gray-700">
+                Autorizo el tratamiento de datos personales del niño conforme a la Ley 1581 de 2012,
+                con fines educativos y de cuidado institucional.
+              </span>
+            </label>
+
+            <label className="flex items-start gap-3 rounded-2xl border border-[#E7D9BD] bg-white p-4">
+              <input
+                type="checkbox"
+                checked={autorizaciones.usoFotos}
+                onChange={(event) => updateAutorizacion("usoFotos", event.target.checked)}
+                className="mt-1 h-5 w-5 accent-[#326B50]"
+              />
+              <span className="text-sm text-gray-700">
+                Autorizo el uso de fotos y evidencias del niño para fines pedagógicos y de comunicación
+                institucional.
+              </span>
+            </label>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="block">
+                <span className="mb-2 block text-sm font-bold text-[#326B50]">Fecha de autorización</span>
+                <input
+                  type="date"
+                  value={autorizaciones.fecha}
+                  onChange={(event) => updateAutorizacion("fecha", event.target.value)}
+                  className="w-full rounded-2xl border border-[#E7D9BD] bg-white px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-[#326B50] focus:ring-2 focus:ring-[#326B50]/10"
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-2 block text-sm font-bold text-[#326B50]">Constancia</span>
+                <input
+                  type="text"
+                  value={autorizaciones.constancia}
+                  onChange={(event) => updateAutorizacion("constancia", event.target.value)}
+                  placeholder="Nombre del acudiente responsable"
+                  className="w-full rounded-2xl border border-[#E7D9BD] bg-white px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-[#326B50] focus:ring-2 focus:ring-[#326B50]/10"
+                />
+              </label>
+            </div>
+
+            {errors.autorizaciones && (
+              <p className="text-sm font-medium text-red-600">{errors.autorizaciones}</p>
+            )}
+          </div>
+        </section>
+
         <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            onClick={() => {
+              setForm(initialForm);
+              setAcudienteForm(initialAcudienteForm);
+              setAutorizaciones(initialAutorizaciones);
+              setSelectedCaregiverIds([]);
+              setErrors({});
+              setFeedback(null);
+            }}
+            className="inline-flex items-center justify-center rounded-full border border-[#D9C8A3] bg-white px-5 py-3 text-sm font-bold text-[#326B50] transition hover:bg-[#F3F8F5]"
+          >
+            Limpiar
+          </button>
           <button
             type="button"
             onClick={() => {

@@ -15,7 +15,7 @@ Al terminar: márcala con `[x]`, agrega una línea en "Estado actual" de
       grupo, salud, observaciones, estado) con validaciones; guarda en memoria.
 - [x] 5. Sección de acudientes en el formulario: datos, contacto de emergencia,
       personas autorizadas, vincular uno o varios acudientes a un niño.
-- [ ] 6. Autorizaciones: tratamiento de datos (Ley 1581 de 2012) y uso de fotos,
+- [x] 6. Autorizaciones: tratamiento de datos (Ley 1581 de 2012) y uso de fotos,
       con checkbox, fecha y constancia. No guardar sin la de datos.
 - [ ] 7. Avatar (animal) y PIN de 4 símbolos, único dentro del grupo; tarjeta
       imprimible y botón de regenerar PIN.
