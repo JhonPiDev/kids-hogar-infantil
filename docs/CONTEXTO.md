@@ -61,4 +61,5 @@ copias de seguridad automáticas, posible evolución a multi-institución.
 - Hecho: capa de datos preparada para Supabase/PostgreSQL con esquema SQL en `db/schema.sql`, servicio de acceso en `lib/data.ts` y hash de PIN en `lib/security.ts`.
 - Hecho: control de acceso por perfiles en `app/panel/` y `app/panel/ninos/page.tsx`; la directora ve todo, la docente ve su grupo y cada padre solo ve a sus hijos.
 - Hecho: pantalla de importación masiva desde Excel en `app/panel/importar/page.tsx` con plantilla CSV, vista previa y reporte de errores por fila.
-- Siguiente: cierre del proyecto Fase 1, preparación para migración a backend real y roles de acceso operativos.
+- Hecho: portal inicial de juegos para niños en `app/ninos/juegos/page.tsx` con las áreas de lógica, lenguaje, motricidad y arte; al validar el PIN, el niño llega a esta pantalla.
+- Siguiente: juego de colores con retroalimentación visual y de audio (`docs/TAREAS.md`, tarea 13).

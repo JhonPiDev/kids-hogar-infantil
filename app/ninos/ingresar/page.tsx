@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { getChildren, verifyChildPin } from "@/lib/data";
@@ -35,6 +36,7 @@ const pinSymbols = [
 ];
 
 export default function NinoIngresarPage() {
+  const router = useRouter();
   const [children, setChildren] = useState<Niño[]>([]);
   const [selectedId, setSelectedId] = useState("");
   const [pin, setPin] = useState<string[]>([]);
@@ -102,8 +104,9 @@ export default function NinoIngresarPage() {
     const isValidPin = await verifyChildPin(selectedChild.id, enteredPin);
 
     if (isValidPin) {
-      setMessage(`¡Bienvenido, ${selectedChild.nombre}! Tu acceso está listo.`);
+      window.localStorage.setItem("kids-child-id", selectedChild.id);
       setPin([]);
+      router.push("/ninos/juegos");
       return;
     }
 
