@@ -19,7 +19,7 @@ Al terminar: márcala con `[x]`, agrega una línea en "Estado actual" de
       con checkbox, fecha y constancia. No guardar sin la de datos.
 - [x] 7. Avatar (animal) y PIN de 4 símbolos, único dentro del grupo; tarjeta
       imprimible y botón de regenerar PIN.
-- [ ] 8. `app/ninos/ingresar/page.tsx`: login del niño con avatar + PIN usando
+- [x] 8. `app/ninos/ingresar/page.tsx`: login del niño con avatar + PIN usando
       botones grandes; conectar el botón "Soy un niño" del inicio (con mock).
 - [ ] 9. Base de datos real: [Supabase / Node + PostgreSQL]; esquema de tablas,
       reemplazar mock por consultas reales, cifrar PIN.

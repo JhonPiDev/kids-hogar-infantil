@@ -57,4 +57,5 @@ copias de seguridad automáticas, posible evolución a multi-institución.
 - Hecho: sección de acudientes en el formulario con contacto de emergencia, personas autorizadas y vinculación a uno o varios acudientes en `app/panel/ninos/nuevo/page.tsx`.
 - Hecho: autorizaciones de tratamiento de datos y uso de fotos con checkbox, fecha y constancia en `app/panel/ninos/nuevo/page.tsx`; no se permite guardar sin la autorización de datos.
 - Hecho: avatar animal, PIN de 4 símbolos único por grupo, tarjeta imprimible y regeneración del PIN en `app/panel/ninos/nuevo/page.tsx`.
-- Siguiente: Fase 1. próxima tarea: login del niño con avatar y PIN.
+- Hecho: login del niño con avatar y PIN en `app/ninos/ingresar/page.tsx`, conectado desde el botón "Soy un niño" del inicio con datos mock.
+- Siguiente: Fase 1. próxima tarea: base de datos real con Supabase o PostgreSQL.

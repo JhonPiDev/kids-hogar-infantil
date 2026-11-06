@@ -1,3 +1,4 @@
+import Link from "next/link";
 
 const perfiles = [
   {
@@ -103,9 +104,18 @@ export default function Home() {
                 {perfil.descripcion}
               </p>
 
-              <p className="mt-5 text-sm font-bold text-orange-500">
-                Acceso próximamente
-              </p>
+              {perfil.titulo === "Soy un niño" ? (
+                <Link
+                  href="/ninos/ingresar"
+                  className="mt-5 inline-flex items-center justify-center rounded-full bg-[#326B50] px-4 py-2 text-sm font-bold text-white transition hover:bg-[#294f3f]"
+                >
+                  Entrar
+                </Link>
+              ) : (
+                <p className="mt-5 text-sm font-bold text-orange-500">
+                  Acceso próximamente
+                </p>
+              )}
             </div>
           ))}
         </div>
